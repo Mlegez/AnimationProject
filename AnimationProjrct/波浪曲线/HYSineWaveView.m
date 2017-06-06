@@ -10,9 +10,9 @@
 
 @interface HYSineWaveView ()
 
-@property (nonatomic, strong) CAShapeLayer           *shapeLayer;
+@property (nonatomic, strong) CAShapeLayer              *shapeLayer;
 
-@property (nonatomic, strong) CADisplayLink           *displayLink;
+@property (nonatomic, strong) CADisplayLink             *displayLink;
 
 @property (nonatomic, assign) CGFloat                   offSet;
 
