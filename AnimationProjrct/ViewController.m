@@ -18,7 +18,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    HYSineWaveView *waveView = [[HYSineWaveView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 200)];
+    HYSineWaveView *waveView = [[HYSineWaveView alloc] initWithFrame:CGRectMake(0,100, [UIScreen mainScreen].bounds.size.width, 200)];
     [self.view addSubview:waveView];
     
 }

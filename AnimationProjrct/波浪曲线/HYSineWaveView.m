@@ -11,6 +11,8 @@
 @interface HYSineWaveView ()
 
 @property (nonatomic, strong) CAShapeLayer              *shapeLayer;
+@property (nonatomic, strong) CAShapeLayer              *cosLayer;
+
 
 @property (nonatomic, strong) CADisplayLink             *displayLink;
 
@@ -38,7 +40,7 @@
  self.phase * M_PI/ 180代表上面公式中的初相，通过规律的变化初相，可以制造出曲线上的点动起来的效果，self.maxAmplitude代表偏距，由于我们需要让波浪曲线的波峰在layer的范围内显示，所以需要将整个曲线向下移动波峰大小的单位，因为CALayer使用左手坐标系，所以向下移动需要加上波峰的大小。
  */
 // 速度
-static CGFloat waveSpeed = 1/M_PI/3;
+static CGFloat waveSpeed = 1/M_PI/2;
 // 振幅
 static CGFloat waveA = 10;
 // 周期
@@ -49,10 +51,33 @@ static CGFloat waveA = 10;
     [self removerDisplayLink];
 }
 
+- (CAShapeLayer *)cosLayer {
+    
+    if (_cosLayer == nil) {
+        _cosLayer = [CAShapeLayer layer];
+        _cosLayer.strokeColor = [UIColor clearColor].CGColor;
+        _cosLayer.fillColor = [UIColor greenColor].CGColor;
+        _cosLayer.opacity = 0.2;
+        _cosLayer.lineWidth = 1.0;
+    }
+    return _cosLayer;
+}
+
+- (CAShapeLayer *)shapeLayer {
+    if (_shapeLayer == nil) {
+        _shapeLayer = [CAShapeLayer layer];
+        _shapeLayer.strokeColor = [UIColor clearColor].CGColor;
+        _shapeLayer.fillColor = [UIColor greenColor].CGColor;
+        _shapeLayer.lineWidth = 1.0;
+    }
+    return _shapeLayer;
+}
+
 - (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         
         [self.layer addSublayer:self.shapeLayer];
+        [self.layer addSublayer:self.cosLayer];
         [self initDisplayLink];
     }
     return self;
@@ -63,16 +88,6 @@ static CGFloat waveA = 10;
         _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(updateLink)];
         [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     }
-}
-
-- (CAShapeLayer *)shapeLayer {
-    if (_shapeLayer == nil) {
-        _shapeLayer = [CAShapeLayer layer];
-        _shapeLayer.strokeColor = [UIColor redColor].CGColor;
-        _shapeLayer.fillColor = [UIColor greenColor].CGColor;
-        _shapeLayer.lineWidth = 1.5;
-    }
-    return _shapeLayer;
 }
 
 - (void)removerDisplayLink {
@@ -89,23 +104,44 @@ static CGFloat waveA = 10;
     CGFloat y = self.frame.size.height/2.0;
     
     //将点移动到 x=0,y=currentK的位置
-    [path moveToPoint:CGPointMake(0, y)];
+    [path moveToPoint:CGPointMake(0, waveA)];
     for (NSInteger x = 0.0f; x <= self.frame.size.width; x++) {
         //正玄波浪公式
-        y = waveA *sin(360.0 / self.frame.size.width * (x  * M_PI / 180) * 1 + self.offSet) + self.frame.size.height - waveA;
+        y = waveA *sin(360.0 / self.frame.size.width * (x  * M_PI / 180) * 1 + self.offSet) + waveA;
         //将点连成线
         [path addLineToPoint:CGPointMake(x, y)];
     }
     
-    [path addLineToPoint:CGPointMake(self.frame.size.width, 0)];
-    [path addLineToPoint:CGPointMake(0, 0)];
+    [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height)];
+    [path addLineToPoint:CGPointMake(0, self.frame.size.height)];
     [path closePath];
     _shapeLayer.path = path.CGPath;
+}
+
+- (void)setCurrentCosLayerPath {
+    UIBezierPath *path = [UIBezierPath bezierPath];
+    CGFloat y = self.frame.size.height/2.0;
+    
+    //将点移动到 x=0,y=currentK的位置
+    [path moveToPoint:CGPointMake(0, waveA)];
+    for (NSInteger x = 0.0f; x <= self.frame.size.width; x++) {
+        //正玄波浪公式
+        y = waveA * cos(360.0 / self.frame.size.width * (x  * M_PI / 180) + self.offSet) + waveA;
+        //将点连成线
+        [path addLineToPoint:CGPointMake(x, y)];
+    }
+    
+    [path addLineToPoint:CGPointMake(self.frame.size.width, self.frame.size.height)];
+    [path addLineToPoint:CGPointMake(0, self.frame.size.height)];
+
+    [path closePath];
+    _cosLayer.path = path.CGPath;
 }
 
 - (void)updateLink {
     
     self.offSet += waveSpeed;
+    [self setCurrentCosLayerPath];
     [self setCurrentFirstWaveLayerPath];
 }
 
